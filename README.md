@@ -109,16 +109,6 @@ For signed APKs, generate a keystore and configure `build.gradle` before buildin
 
 ---
 
-## 🧭 Roadmap
-
-* [x] Real-time CPU usage
-* [x] Network speed monitoring
-* [ ] Storage monitoring
-* [ ] Multiple widget sizes
-* [ ] Theme customization
-
----
-
 ## 🤝 Contributing
 
 1. Fork the repo
