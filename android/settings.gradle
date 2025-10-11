@@ -44,7 +44,7 @@ if (getRNMinorVersion() >= 75) {
   }
 }
 
-rootProject.name = 'Nothing System Widget'
+rootProject.name = 'RTMON'
 
 dependencyResolutionManagement {
   versionCatalogs {

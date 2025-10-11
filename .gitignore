@@ -10,8 +10,22 @@ npm-debug.*
 *.mobileprovision
 *.orig.*
 web-build/
-android/
+
+# Android build files
+android/app/build/
+android/build/
+android/.gradle/
+android/app/.cxx/
+android/local.properties
+*.apk
+*.aab
+
+# iOS
 ios/
+
+# IDE
+.idea/
+.vscode/
 
 # macOS
 .DS_Store
