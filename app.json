@@ -1,0 +1,39 @@
+{
+  "expo": {
+    "name": "Nothing System Widget",
+    "slug": "nothing-system-widget",
+    "version": "1.0.0",
+    "orientation": "portrait",
+    "userInterfaceStyle": "dark",
+    "splash": {
+      "resizeMode": "contain",
+      "backgroundColor": "#000000"
+    },
+    "assetBundlePatterns": [
+      "**/*"
+    ],
+    "ios": {
+      "supportsTablet": true
+    },
+    "android": {
+      "package": "com.nothing.systemwidget",
+      "permissions": [
+        "android.permission.BATTERY_STATS",
+        "android.permission.ACCESS_NETWORK_STATE"
+      ]
+    },
+    "web": {},
+    "plugins": [
+      [
+        "expo-build-properties",
+        {
+          "android": {
+            "compileSdkVersion": 34,
+            "targetSdkVersion": 34,
+            "minSdkVersion": 23
+          }
+        }
+      ]
+    ]
+  }
+}
