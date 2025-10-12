@@ -59,11 +59,11 @@ class SystemStatsWidget : AppWidgetProvider() {
             PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
         )
 
-        // Update every 1 second for real-time effect
+        // Update every 2 seconds for optimal battery efficiency
         alarmManager.setRepeating(
             AlarmManager.ELAPSED_REALTIME,
             SystemClock.elapsedRealtime(),
-            1000L, // 1 second
+            2000L, // 2 seconds - balanced performance and battery life
             pendingIntent
         )
     }
@@ -99,17 +99,43 @@ class SystemStatsWidget : AppWidgetProvider() {
         private const val PREFS_NAME = "SystemStatsWidget"
         private const val MAX_DATA_POINTS = 30
 
-        // Cached Paint objects to avoid recreation
-        private val linePaint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
-            color = Color.parseColor("#FF0000")
-            strokeWidth = 2f
+        // Cached Paint objects to avoid recreation - memory efficient
+        private val redLinePaint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
+            color = Color.parseColor("#FF0000")  // Red for CPU
+            strokeWidth = 4f
             style = Paint.Style.STROKE
             strokeJoin = Paint.Join.ROUND
             strokeCap = Paint.Cap.ROUND
         }
 
-        private val fillPaint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
-            color = Color.parseColor("#22FF0000")
+        private val redFillPaint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
+            color = Color.parseColor("#22FF0000")  // Red transparent
+            style = Paint.Style.FILL
+        }
+
+        private val greenLinePaint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
+            color = Color.parseColor("#00FF00")  // Green for Memory
+            strokeWidth = 4f
+            style = Paint.Style.STROKE
+            strokeJoin = Paint.Join.ROUND
+            strokeCap = Paint.Cap.ROUND
+        }
+
+        private val greenFillPaint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
+            color = Color.parseColor("#2200FF00")  // Green transparent
+            style = Paint.Style.FILL
+        }
+
+        private val blueLinePaint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
+            color = Color.parseColor("#0099FF")  // Blue for Battery & Network
+            strokeWidth = 4f
+            style = Paint.Style.STROKE
+            strokeJoin = Paint.Join.ROUND
+            strokeCap = Paint.Cap.ROUND
+        }
+
+        private val blueFillPaint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
+            color = Color.parseColor("#220099FF")  // Blue transparent
             style = Paint.Style.FILL
         }
 
@@ -147,28 +173,28 @@ class SystemStatsWidget : AppWidgetProvider() {
             val prefs = context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
             val editor = prefs.edit() // Batch all writes together
 
-            // CPU Graph
+            // CPU Graph - Red
             val cpuHistory = getHistoryList(prefs, "cpu_history")
             cpuHistory.add(cpuUsage.toFloat())
             if (cpuHistory.size > MAX_DATA_POINTS) cpuHistory.removeAt(0)
             editor.putString("cpu_history", cpuHistory.joinToString(","))
-            views.setImageViewBitmap(R.id.cpu_graph, drawGraph(cpuHistory, 240, 96))
+            views.setImageViewBitmap(R.id.cpu_graph, drawGraph(cpuHistory, 240, 96, redLinePaint, redFillPaint))
 
-            // Memory Graph
+            // Memory Graph - Green
             val memHistory = getHistoryList(prefs, "mem_history")
             memHistory.add(memoryUsage.toFloat())
             if (memHistory.size > MAX_DATA_POINTS) memHistory.removeAt(0)
             editor.putString("mem_history", memHistory.joinToString(","))
-            views.setImageViewBitmap(R.id.memory_graph, drawGraph(memHistory, 240, 96))
+            views.setImageViewBitmap(R.id.memory_graph, drawGraph(memHistory, 240, 96, greenLinePaint, greenFillPaint))
 
-            // Battery Graph
+            // Battery Graph - Blue
             val batHistory = getHistoryList(prefs, "bat_history")
             batHistory.add(batteryLevel.toFloat())
             if (batHistory.size > MAX_DATA_POINTS) batHistory.removeAt(0)
             editor.putString("bat_history", batHistory.joinToString(","))
-            views.setImageViewBitmap(R.id.battery_graph, drawGraph(batHistory, 240, 96))
+            views.setImageViewBitmap(R.id.battery_graph, drawGraph(batHistory, 240, 96, blueLinePaint, blueFillPaint))
 
-            // Network Speed Graph (normalized to percentage for graph)
+            // Network Speed Graph - Blue (normalized to percentage for graph)
             val netHistory = getHistoryList(prefs, "net_history")
             val maxSpeed = prefs.getFloat("max_speed", 1048576f) // Start with 1 MB/s as baseline
             val normalizedSpeed = ((networkSpeed / maxSpeed) * 100f).coerceAtMost(100f)
@@ -178,7 +204,7 @@ class SystemStatsWidget : AppWidgetProvider() {
             netHistory.add(normalizedSpeed)
             if (netHistory.size > MAX_DATA_POINTS) netHistory.removeAt(0)
             editor.putString("net_history", netHistory.joinToString(","))
-            views.setImageViewBitmap(R.id.network_graph, drawGraph(netHistory, 240, 96))
+            views.setImageViewBitmap(R.id.network_graph, drawGraph(netHistory, 240, 96, blueLinePaint, blueFillPaint))
 
             // Apply all SharedPreferences changes at once
             editor.apply()
@@ -187,12 +213,12 @@ class SystemStatsWidget : AppWidgetProvider() {
             appWidgetManager.updateAppWidget(appWidgetId, views)
         }
 
-        private fun drawGraph(dataPoints: List<Float>, width: Int, height: Int): Bitmap {
+        private fun drawGraph(dataPoints: List<Float>, width: Int, height: Int, linePaint: Paint, fillPaint: Paint): Bitmap {
             val bitmap = Bitmap.createBitmap(width, height, Bitmap.Config.ARGB_8888)
             val canvas = Canvas(bitmap)
 
             // Draw background
-            canvas.drawColor(Color.parseColor("#0A0A0A"))
+            canvas.drawColor(Color.parseColor("#25292E"))
 
             if (dataPoints.isEmpty()) return bitmap
 
@@ -224,7 +250,7 @@ class SystemStatsWidget : AppWidgetProvider() {
             fillPath.lineTo(stepX * (dataPoints.size - 1), height.toFloat())
             fillPath.close()
 
-            // Draw using cached paint objects
+            // Draw using provided paint objects (memory efficient - reused)
             canvas.drawPath(fillPath, fillPaint)
             canvas.drawPath(path, linePaint)
 
