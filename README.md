@@ -322,4 +322,10 @@ MIT License - See [LICENSE](LICENSE) for details
 
 ---
 
+## 🤖 Development Note
+
+This project was partially built using [Claude Code](https://claude.com/claude-code).
+
+---
+
 **RTMON - Real-Time System Monitor** | Built for Android | Powered by Native Kotlin & React Native
