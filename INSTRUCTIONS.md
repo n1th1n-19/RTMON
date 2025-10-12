@@ -1,425 +1,337 @@
-# Building Nothing System Widget with Claude CLI in VS Code
+# RTMON Build Instructions
 
-This guide will help you build and run the Nothing System Widget project using Claude CLI directly in VS Code.
+This guide provides detailed instructions for building, installing, and customizing the RTMON system monitoring widget.
+
+---
 
 ## Prerequisites
 
-Before starting, ensure you have:
+### Required Software
+1. **Node.js** (v16 or higher) - [Download](https://nodejs.org)
+2. **Android Studio** with Android SDK - [Download](https://developer.android.com/studio)
+3. **Java Development Kit (JDK)** 11 or higher
+4. **Git** (optional, for cloning repository)
 
-1. **VS Code** installed
-2. **Node.js** (v16 or higher) and npm
-3. **Claude CLI** installed and configured
-4. **Android Studio** with Android SDK
-5. **Java Development Kit (JDK)** 11 or higher
-6. **Git** (optional, for version control)
+### Required Tools
+- **npm** (comes with Node.js)
+- **Expo CLI** (will be installed via npm)
+- **Android SDK Platform Tools** (adb)
+- **Gradle** (comes with Android project)
 
-## Part 1: Initial Setup
+---
 
-### Step 1: Install Claude CLI
+## Quick Start
 
-If you haven't installed Claude CLI yet:
+### Method 1: Install Pre-built APK (Recommended)
 
-```bash
-# Install Claude CLI globally
-npm install -g @anthropic-ai/claude-cli
+1. Download latest `app-release.apk` from [Releases](https://github.com/n1th1n-19/RTMON/releases)
+2. Transfer to your Android device
+3. Enable "Install from Unknown Sources" if prompted
+4. Install the APK
+5. Add widget to home screen
 
-# Verify installation
-claude --version
-```
-
-### Step 2: Configure Claude CLI
-
-```bash
-# Set your API key (get it from https://console.anthropic.com/)
-claude config set apiKey YOUR_API_KEY_HERE
-
-# Verify configuration
-claude config list
-```
-
-### Step 3: Extract and Open Project
+### Method 2: Build from Source
 
 ```bash
-# Navigate to where you extracted the zip file
-cd /path/to/nothing-widget
+# Clone the repository
+git clone https://github.com/n1th1n-19/RTMON.git
+cd RTMON
 
-# Open in VS Code
-code .
-```
-
-## Part 2: Install Dependencies
-
-### Step 1: Open VS Code Terminal
-
-In VS Code, press `` Ctrl + ` `` (or `Cmd + ` on Mac) to open the integrated terminal.
-
-### Step 2: Install Node Dependencies
-
-```bash
-# Install all npm dependencies
+# Install dependencies
 npm install
 
-# Install additional required dependencies
-npm install expo-battery expo-device react-native-device-info expo-build-properties
+# Build for Android
+cd android
+./gradlew assembleRelease
+
+# APK will be at: android/app/build/outputs/apk/release/app-release.apk
 ```
 
-### Step 3: Verify package.json
+---
 
-Use Claude CLI to verify all dependencies are correct:
+## Detailed Build Instructions
 
+### Step 1: Environment Setup
+
+#### Windows
 ```bash
-claude "Check my package.json and ensure all dependencies for the Nothing widget are correctly installed"
-```
-
-## Part 3: Configure Android Environment
-
-### Step 1: Set Environment Variables
-
-**Windows:**
-```bash
-# Add these to your system environment variables
+# Set Android SDK path
 setx ANDROID_HOME "C:\Users\YourUsername\AppData\Local\Android\Sdk"
+
+# Set Java path
 setx JAVA_HOME "C:\Program Files\Java\jdk-11.0.x"
+
+# Add to PATH
+setx PATH "%PATH%;%ANDROID_HOME%\platform-tools;%ANDROID_HOME%\tools"
 ```
 
-**macOS/Linux:**
+#### macOS/Linux
 ```bash
-# Add these to your ~/.bashrc or ~/.zshrc
+# Add to ~/.bashrc or ~/.zshrc
 export ANDROID_HOME=$HOME/Library/Android/sdk
 export JAVA_HOME=/Library/Java/JavaVirtualMachines/jdk-11.0.x.jdk/Contents/Home
 export PATH=$PATH:$ANDROID_HOME/emulator
 export PATH=$PATH:$ANDROID_HOME/platform-tools
-```
 
-Then reload:
-```bash
+# Reload shell configuration
 source ~/.bashrc  # or source ~/.zshrc
 ```
 
-### Step 2: Verify Android Setup
+### Step 2: Verify Installation
 
 ```bash
+# Check Node.js
+node --version  # Should be v16+
+
+# Check npm
+npm --version
+
+# Check Java
+java --version  # Should be 11+
+
 # Check Android SDK
 adb version
 
-# List available devices/emulators
+# List connected devices
 adb devices
 ```
 
-## Part 4: Generate Native Android Code
-
-### Step 1: Prebuild the Project
+### Step 3: Clone and Install
 
 ```bash
-# Generate native Android project files
+# Clone repository
+git clone https://github.com/n1th1n-19/RTMON.git
+cd RTMON
+
+# Install Node dependencies
+npm install
+
+# Verify package.json
+cat package.json
+```
+
+### Step 4: Configure Android SDK
+
+```bash
+# Create local.properties (if not exists)
+echo "sdk.dir=C:\\Users\\YourUsername\\AppData\\Local\\Android\\Sdk" > android/local.properties
+
+# Or for macOS/Linux
+echo "sdk.dir=/Users/YourUsername/Library/Android/sdk" > android/local.properties
+```
+
+### Step 5: Build the Project
+
+#### Debug Build
+```bash
+cd android
+./gradlew assembleDebug
+cd ..
+```
+Output: `android/app/build/outputs/apk/debug/app-debug.apk` (~134MB)
+
+#### Release Build
+```bash
+cd android
+./gradlew assembleRelease
+cd ..
+```
+Output: `android/app/build/outputs/apk/release/app-release.apk` (~60MB)
+
+---
+
+## Development Mode
+
+### Using Expo CLI
+
+```bash
+# Start Metro bundler
+npx expo start
+
+# Run on Android (in another terminal)
+npx expo run:android
+```
+
+### Direct Android Build and Install
+
+```bash
+# Build and install debug APK
+cd android
+./gradlew installDebug
+cd ..
+
+# View logs
+adb logcat | grep SystemStatsWidget
+```
+
+---
+
+## Customization Guide
+
+### 1. Change Update Frequency
+
+Edit `android/app/src/main/java/com/nothing/systemwidget/SystemStatsWidget.kt`:
+
+```kotlin
+// Line 66
+alarmManager.setRepeating(
+    AlarmManager.ELAPSED_REALTIME,
+    SystemClock.elapsedRealtime(),
+    2000L, // Change this value (milliseconds)
+    pendingIntent
+)
+```
+
+Recommended values:
+- Fast: 1000L (1 second) - Higher battery drain
+- Balanced: 2000L (2 seconds) - Default
+- Slow: 5000L (5 seconds) - Better battery life
+
+### 2. Customize Theme Colors
+
+#### Light Theme
+Edit `android/app/src/main/res/values/colors.xml`:
+```xml
+<color name="widget_background">#F5F5F5</color>
+<color name="widget_label_text">#000000</color>
+<color name="widget_graph_background">#FFFFFF</color>
+<color name="widget_grid">#E0E0E0</color>
+```
+
+#### Dark Theme
+Edit `android/app/src/main/res/values-night/colors.xml`:
+```xml
+<color name="widget_background">#25292E</color>
+<color name="widget_label_text">#FFFFFF</color>
+<color name="widget_graph_background">#25292E</color>
+<color name="widget_grid">#1A1A1A</color>
+```
+
+### 3. Change Graph Colors
+
+Edit `SystemStatsWidget.kt` (lines 103-140):
+```kotlin
+private val redLinePaint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
+    color = Color.parseColor("#FF0000")  // Change CPU color
+    strokeWidth = 4f  // Adjust line thickness
+}
+
+private val greenLinePaint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
+    color = Color.parseColor("#00FF00")  // Change Memory color
+    strokeWidth = 4f
+}
+
+private val blueLinePaint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
+    color = Color.parseColor("#0099FF")  // Change Battery/Network color
+    strokeWidth = 4f
+}
+```
+
+### 4. Adjust Graph History
+
+Edit `SystemStatsWidget.kt` (line 100):
+```kotlin
+private const val MAX_DATA_POINTS = 30  // 60 seconds at 2-second refresh
+// Change to 60 for 2 minutes of history
+// Change to 150 for 5 minutes of history
+```
+
+### 5. Modify Widget Padding
+
+Edit `android/app/src/main/res/layout/widget_system_stats.xml` (line 7):
+```xml
+android:padding="16dp"  <!-- Change padding size -->
+```
+
+---
+
+## Troubleshooting
+
+### Build Errors
+
+#### Gradle Build Failed
+```bash
+# Clean build
+cd android
+./gradlew clean
+cd ..
+
+# Regenerate project
 npx expo prebuild --platform android --clean
 ```
 
-This will create the full Android project structure in the `android/` directory.
+#### Missing SDK
+```bash
+# Install required SDK components via Android Studio
+# Or use sdkmanager:
+sdkmanager "platforms;android-34"
+sdkmanager "build-tools;34.0.0"
+```
 
-### Step 2: Verify Android Files with Claude CLI
+#### Permission Denied (Linux/Mac)
+```bash
+# Make gradlew executable
+chmod +x android/gradlew
+```
+
+### Widget Issues
+
+#### Widget Not Appearing
+1. Check AndroidManifest.xml for widget receiver
+2. Verify widget layout files exist
+3. Reinstall app
+4. Restart device
+
+#### Stats Not Updating
+1. Disable battery optimization for RTMON
+   - Settings → Apps → RTMON → Battery → Unrestricted
+2. Check background permissions
+3. View logs: `adb logcat | grep SystemStatsWidget`
+
+#### Theme Not Switching
+1. Requires Android 10+
+2. Change system theme: Settings → Display → Dark mode
+3. Restart widget or app
+4. Check color resource files exist
+
+---
+
+## Building for Release
+
+### Step 1: Generate Signing Key
 
 ```bash
-claude "Verify that all Android widget files are correctly placed in the android directory structure. Check SystemStatsWidget.java, widget layouts, and AndroidManifest.xml"
+keytool -genkeypair -v -storetype PKCS12 \
+  -keystore rtmon-release.keystore \
+  -alias rtmon-key \
+  -keyalg RSA \
+  -keysize 2048 \
+  -validity 10000
 ```
 
-## Part 5: Fix Common Issues with Claude CLI
+### Step 2: Configure Signing
 
-### Issue 1: Missing Android Files
-
-If Android native files are missing after prebuild:
-
-```bash
-claude "The android/app/src/main directory is missing widget files. Please ensure SystemStatsWidget.java, widget_system_stats.xml layout and config, and widget_background.xml are in the correct locations"
+Create `android/keystore.properties`:
+```properties
+storeFile=rtmon-release.keystore
+storePassword=YOUR_STORE_PASSWORD
+keyAlias=rtmon-key
+keyPassword=YOUR_KEY_PASSWORD
 ```
 
-### Issue 2: Gradle Configuration
-
-If you get Gradle errors:
-
-```bash
-claude "I'm getting Gradle build errors. Please check my android/app/build.gradle and android/build.gradle files and fix any configuration issues"
+Add to `android/app/build.gradle`:
+```gradle
+android {
+    signingConfigs {
+        release {
+            storeFile file('../keystore.properties')
+            // ... configuration
+        }
+    }
+}
 ```
 
-### Issue 3: Package Name Conflicts
-
-```bash
-claude "Fix package name conflicts in my Android project. The package should be com.nothing.systemwidget throughout all files"
-```
-
-## Part 6: Build the Project
-
-### Method 1: Using Expo CLI (Recommended for Development)
-
-```bash
-# Start the Metro bundler
-npx expo start
-
-# In another terminal, run on Android
-npx expo run:android
-```
-
-### Method 2: Direct Android Build
-
-```bash
-# Navigate to android directory
-cd android
-
-# Clean build
-./gradlew clean
-
-# Build debug APK
-./gradlew assembleDebug
-
-# Install on connected device
-./gradlew installDebug
-
-# Return to project root
-cd ..
-```
-
-### Method 3: Using EAS Build (For Production)
-
-```bash
-# Install EAS CLI
-npm install -g eas-cli
-
-# Login to Expo
-eas login
-
-# Configure EAS
-eas build:configure
-
-# Build preview APK
-eas build --platform android --profile preview
-
-# Build production AAB
-eas build --platform android --profile production
-```
-
-## Part 7: Troubleshooting with Claude CLI
-
-### Check Build Errors
-
-If build fails, use Claude CLI to diagnose:
-
-```bash
-# For Gradle errors
-claude "I'm getting this Gradle error: [paste error here]. How do I fix it?"
-
-# For React Native errors
-claude "I'm getting this React Native error: [paste error here]. Please help me resolve it."
-
-# For widget not appearing
-claude "My Android widget isn't showing up in the widget list. Check my AndroidManifest.xml and widget configuration"
-```
-
-### Verify Widget Implementation
-
-```bash
-claude "Review my SystemStatsWidget.java file and ensure the widget will properly display battery, RAM, and CPU stats on the home screen"
-```
-
-### Fix Layout Issues
-
-```bash
-claude "My widget layout looks wrong. Please review android/app/src/main/res/layout/widget_system_stats.xml and fix any UI issues"
-```
-
-## Part 8: Testing the Widget
-
-### Step 1: Install the App
-
-After successful build, install on your device:
-
-```bash
-# Install via ADB
-adb install android/app/build/outputs/apk/debug/app-debug.apk
-
-# Or use Expo
-npx expo run:android
-```
-
-### Step 2: Add Widget to Home Screen
-
-1. Long-press on your Nothing Phone home screen
-2. Tap "Widgets"
-3. Scroll to find "Nothing System Widget"
-4. Drag and drop it onto your home screen
-5. Widget should show Battery, RAM, and CPU stats
-
-### Step 3: Verify Widget Updates
-
-```bash
-claude "How can I verify that my widget is updating correctly? What should I check in the Android logcat?"
-```
-
-To view logs:
-```bash
-# View all logs
-adb logcat
-
-# Filter for widget logs
-adb logcat | grep SystemStatsWidget
-
-# Filter for errors only
-adb logcat *:E
-```
-
-## Part 9: Common Claude CLI Commands for This Project
-
-Here are useful Claude CLI commands while working on this project:
-
-### Code Review
-```bash
-claude "Review my App.tsx and suggest improvements for better performance"
-```
-
-### Add Features
-```bash
-claude "Add a dark/light theme toggle to the main app"
-```
-
-```bash
-claude "Add storage usage percentage to the widget"
-```
-
-### Fix Bugs
-```bash
-claude "The battery percentage isn't updating in the widget. Fix the SystemStatsWidget.java file"
-```
-
-### Optimize Performance
-```bash
-claude "Optimize the CPU usage calculation in SystemStatsWidget.java to be more efficient"
-```
-
-### Customize Design
-```bash
-claude "Change the widget background to use Nothing Phone's red accent color instead of cyan"
-```
-
-### Generate Additional Files
-```bash
-claude "Create app icons for the Nothing widget in different resolutions (mdpi, hdpi, xhdpi, xxhdpi, xxxhdpi)"
-```
-
-## Part 10: Project Structure Verification
-
-Use Claude CLI to verify your project structure:
-
-```bash
-claude "List and verify the complete project structure for the Nothing widget, ensuring all files are in the correct locations"
-```
-
-Expected structure:
-```
-nothing-widget/
-├── App.tsx
-├── app.json
-├── package.json
-├── .gitignore
-├── README.md
-├── INSTRUCTIONS.md (this file)
-└── android/
-    └── app/
-        └── src/
-            └── main/
-                ├── AndroidManifest.xml
-                ├── java/com/nothing/systemwidget/
-                │   └── SystemStatsWidget.java
-                └── res/
-                    ├── drawable/
-                    │   └── widget_background.xml
-                    ├── layout/
-                    │   └── widget_system_stats.xml
-                    ├── values/
-                    │   └── strings.xml
-                    └── xml/
-                        └── widget_system_stats.xml
-```
-
-## Part 11: Advanced Customization
-
-### Customize Widget Colors
-
-```bash
-claude "Change all cyan colors (#00D9FF) in the widget to Nothing Phone's signature red color"
-```
-
-### Add More Metrics
-
-```bash
-claude "Add network speed monitoring to both the app and widget"
-```
-
-### Change Update Frequency
-
-```bash
-claude "Explain how to change the widget update frequency and the trade-offs with battery life"
-```
-
-### Add Widget Sizes
-
-```bash
-claude "Create multiple widget size configurations (small 2x2, medium 4x2, large 4x4) with different information density"
-```
-
-## Part 12: Debugging Tips
-
-### Enable Debug Mode
-
-```bash
-# Enable React Native debug mode
-npx react-native log-android
-
-# Enable Expo debug mode
-npx expo start --dev-client
-```
-
-### Check Widget Registration
-
-```bash
-claude "Verify that my widget is correctly registered in AndroidManifest.xml and can be detected by the Android system"
-```
-
-### Inspect Widget Layout
-
-```bash
-# Use Android Studio's Layout Inspector
-# Open Android Studio > Tools > Layout Inspector
-```
-
-### Monitor System Resources
-
-```bash
-# Monitor memory usage
-adb shell dumpsys meminfo com.nothing.systemwidget
-
-# Monitor battery usage
-adb shell dumpsys battery
-
-# Monitor CPU
-adb shell top -m 10
-```
-
-## Part 13: Building for Release
-
-### Step 1: Generate Keystore
-
-```bash
-# Generate release keystore
-keytool -genkeypair -v -storetype PKCS12 -keystore nothing-widget-release.keystore -alias nothing-widget -keyalg RSA -keysize 2048 -validity 10000
-```
-
-### Step 2: Configure Gradle for Release
-
-Ask Claude CLI to help:
-```bash
-claude "Configure my android/app/build.gradle for release builds with signing configuration"
-```
-
-### Step 3: Build Release APK
+### Step 3: Build Signed Release
 
 ```bash
 cd android
@@ -427,154 +339,202 @@ cd android
 cd ..
 ```
 
-The APK will be at: `android/app/build/outputs/apk/release/app-release.apk`
+---
 
-## Part 14: Continuous Development with Claude CLI
+## Testing
 
-### Watch Mode
-
-Keep Claude CLI ready to help while developing:
+### Install on Device
 
 ```bash
-# In one terminal, run the app
-npx expo start
+# Via ADB
+adb install android/app/build/outputs/apk/debug/app-debug.apk
 
-# In another terminal, keep Claude CLI ready
-claude --interactive
+# Or release
+adb install android/app/build/outputs/apk/release/app-release.apk
 ```
 
-### Quick Fixes
+### Add Widget to Home Screen
+
+1. Long-press on home screen
+2. Tap "Widgets"
+3. Find "RTMON"
+4. Drag to home screen
+5. Widget starts updating immediately
+
+### Monitor Widget Logs
 
 ```bash
-# Fix TypeScript errors
-claude "Fix all TypeScript errors in App.tsx"
-
-# Fix widget layout issues
-claude "The widget text is overlapping. Fix the layout constraints in widget_system_stats.xml"
-
-# Update dependencies
-claude "Update all dependencies to their latest compatible versions and update package.json"
-```
-
-### Code Generation
-
-```bash
-# Generate new components
-claude "Create a new component for displaying detailed CPU core usage in a modal"
-
-# Generate tests
-claude "Create Jest tests for the system stats data fetching functions"
-```
-
-## Part 15: Publishing
-
-### Option 1: Direct APK Distribution
-
-```bash
-# Build signed release APK
-cd android && ./gradlew assembleRelease
-
-# Share the APK directly to Nothing Phone users
-# File location: android/app/build/outputs/apk/release/app-release.apk
-```
-
-### Option 2: Google Play Store
-
-```bash
-# Build AAB (Android App Bundle)
-cd android && ./gradlew bundleRelease
-
-# Upload to Google Play Console
-# File location: android/app/build/outputs/bundle/release/app-release.aab
-```
-
-Use Claude CLI for Play Store listing:
-```bash
-claude "Generate a Google Play Store description for the Nothing System Widget app, including key features and screenshots description"
-```
-
-## Part 16: Maintenance and Updates
-
-### Update Widget Logic
-
-```bash
-claude "Update the CPU calculation in SystemStatsWidget.java to be more accurate using /proc/stat"
-```
-
-### Add New Features
-
-```bash
-claude "Add temperature monitoring to the widget if the device supports it"
-```
-
-### Fix Reported Issues
-
-```bash
-claude "Users report the widget stops updating after a few hours. Diagnose and fix the issue"
-```
-
-## Quick Reference Commands
-
-```bash
-# Start development
-npm install
-npx expo prebuild --platform android
-npx expo run:android
-
-# Clean build
-cd android && ./gradlew clean && cd ..
-npx expo prebuild --platform android --clean
-
-# View logs
+# All widget logs
 adb logcat | grep SystemStatsWidget
 
-# Rebuild and install
-npx expo run:android
+# Errors only
+adb logcat *:E | grep SystemStatsWidget
 
-# Ask Claude for help
-claude "How do I [your question here]?"
-```
-
-## Support and Resources
-
-- **Expo Documentation**: https://docs.expo.dev
-- **React Native**: https://reactnative.dev
-- **Android Widgets**: https://developer.android.com/guide/topics/appwidgets
-- **Claude CLI**: https://docs.claude.com/en/docs/claude-code
-- **Nothing Community**: https://nothing.community
-
-## Final Checklist
-
-Before considering the project complete, verify:
-
-- [ ] App runs successfully on Android device
-- [ ] Widget appears in widget picker
-- [ ] Widget displays correct battery percentage
-- [ ] Widget displays correct RAM usage
-- [ ] Widget displays CPU approximation
-- [ ] Widget updates automatically
-- [ ] App shows real-time stats
-- [ ] No crashes or errors in logcat
-- [ ] UI matches Nothing Phone design
-- [ ] All dependencies are properly installed
-
-## Getting Help
-
-If you encounter any issues, use Claude CLI:
-
-```bash
-# General help
-claude "I'm stuck at [describe your issue]. What should I do?"
-
-# Specific errors
-claude "I'm getting this error: [paste full error]. How do I fix it?"
-
-# Best practices
-claude "What are the best practices for Android widget development with React Native?"
+# Continuous monitoring
+adb logcat -v time | grep "SystemStatsWidget\|RTMON"
 ```
 
 ---
 
-**Happy Building! 🚀**
+## Performance Optimization
 
-For any questions or issues, use `claude --help` or ask Claude directly in your VS Code terminal.
+### Reduce Battery Drain
+
+1. Increase update interval (2s → 5s)
+2. Reduce graph data points (30 → 15)
+3. Screen-off detection is already implemented
+
+### Reduce Memory Usage
+
+1. Graph bitmaps are already optimized
+2. Paint objects are cached
+3. SharedPreferences writes are batched
+
+### Improve Responsiveness
+
+1. Decrease update interval (2s → 1s) - Higher battery drain
+2. Increase graph data points (30 → 60) - Higher memory usage
+
+---
+
+## Advanced Configuration
+
+### Multiple Widget Instances
+
+Each widget instance maintains its own update cycle. No additional configuration needed.
+
+### Custom Metrics
+
+To add new metrics (e.g., storage, temperature):
+1. Add measurement function in `SystemStatsWidget.kt`
+2. Add new graph section in `widget_system_stats.xml`
+3. Add new Paint objects for graph colors
+4. Update `updateAppWidget()` to include new metric
+
+### Export/Import Settings
+
+Currently not supported. Settings are hardcoded. Future versions will include settings app.
+
+---
+
+## Debugging Tips
+
+### Enable Debug Mode
+
+```bash
+# React Native debug
+npx react-native log-android
+
+# Expo debug
+npx expo start --dev-client
+```
+
+### Inspect Widget Rendering
+
+```bash
+# Dump widget info
+adb shell dumpsys appwidget
+
+# Check memory usage
+adb shell dumpsys meminfo com.nothing.systemwidget
+
+# Monitor CPU usage
+adb shell top -m 10 | grep systemwidget
+```
+
+### View System Resources
+
+```bash
+# Battery stats
+adb shell dumpsys battery
+
+# CPU info
+adb shell cat /proc/stat
+
+# Memory info
+adb shell cat /proc/meminfo
+```
+
+---
+
+## Publishing
+
+### Google Play Store
+
+1. Build signed AAB:
+```bash
+cd android
+./gradlew bundleRelease
+```
+
+2. Upload to Play Console:
+   - File: `android/app/build/outputs/bundle/release/app-release.aab`
+   - Fill in store listing
+   - Set up content rating
+   - Submit for review
+
+### Direct Distribution
+
+1. Build signed APK (see Building for Release)
+2. Distribute APK file directly
+3. Users must enable "Install from Unknown Sources"
+
+---
+
+## Quick Reference
+
+### Common Commands
+
+```bash
+# Install dependencies
+npm install
+
+# Clean build
+cd android && ./gradlew clean && cd ..
+
+# Build debug
+cd android && ./gradlew assembleDebug && cd ..
+
+# Build release
+cd android && ./gradlew assembleRelease && cd ..
+
+# Install debug
+adb install android/app/build/outputs/apk/debug/app-debug.apk
+
+# View logs
+adb logcat | grep SystemStatsWidget
+
+# Uninstall
+adb uninstall com.nothing.systemwidget
+```
+
+### File Locations
+
+- **Widget Logic:** `android/app/src/main/java/com/nothing/systemwidget/SystemStatsWidget.kt`
+- **Widget Layout:** `android/app/src/main/res/layout/widget_system_stats.xml`
+- **Colors:** `android/app/src/main/res/values/colors.xml`
+- **Dark Theme Colors:** `android/app/src/main/res/values-night/colors.xml`
+- **Background Shape:** `android/app/src/main/res/drawable/widget_background.xml`
+- **Manifest:** `android/app/src/main/AndroidManifest.xml`
+
+---
+
+## Getting Help
+
+- **GitHub Issues:** [Report bugs](https://github.com/n1th1n-19/RTMON/issues)
+- **GitHub Discussions:** [Ask questions](https://github.com/n1th1n-19/RTMON/discussions)
+- **Documentation:** [README.md](README.md)
+- **Roadmap:** [ROADMAP.md](ROADMAP.md)
+
+---
+
+## Version Information
+
+- **Current Version:** v2.1.0
+- **Min Android:** 6.0 (API 23)
+- **Target Android:** 14 (API 34)
+- **Package:** com.nothing.systemwidget
+
+---
+
+**Happy Building! 🚀**
