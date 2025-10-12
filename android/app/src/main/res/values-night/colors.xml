@@ -2,6 +2,6 @@
   <!-- Widget colors - Dark theme -->
   <color name="widget_background">#1A1A1A</color>
   <color name="widget_label_text">#FFFFFF</color>
-  <color name="widget_graph_background">#1A1A1A</color>
-  <color name="widget_grid">#0D0D0D</color>
+  <color name="widget_graph_background">#0D0D0D</color>
+  <color name="widget_grid">#050505</color>
 </resources>
