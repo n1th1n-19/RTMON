@@ -4,6 +4,22 @@ A sleek, real-time system monitoring widget for Android, designed with a **retro
 
 ---
 
+## 📸 Screenshots
+
+### Dark Theme
+<p align="center">
+  <img src="assets/screenshots/dark-theme1.jpg" width="45%" alt="Dark Theme 1"/>
+  <img src="assets/screenshots/dark-theme2.jpg" width="45%" alt="Dark Theme 2"/>
+</p>
+
+### Light Theme
+<p align="center">
+  <img src="assets/screenshots/light-theme1.jpg" width="45%" alt="Light Theme 1"/>
+  <img src="assets/screenshots/light-theme2.jpg" width="45%" alt="Light Theme 2"/>
+</p>
+
+---
+
 ## ✨ Features
 
 * **Real-Time CPU Monitoring** - True CPU usage from `/proc/stat`
