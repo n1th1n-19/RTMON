@@ -25,7 +25,7 @@
                 android:fontFamily="@font/led_dot_matrix"
                 android:letterSpacing="0.1"
                 android:text="CPU"
-                android:textColor="#FFFFFF"
+                android:textColor="@color/widget_label_text"
                 android:textSize="10sp" />
 
             <TextView
@@ -68,7 +68,7 @@
                 android:fontFamily="@font/led_dot_matrix"
                 android:letterSpacing="0.1"
                 android:text="RAM"
-                android:textColor="#FFFFFF"
+                android:textColor="@color/widget_label_text"
                 android:textSize="10sp" />
 
             <TextView
@@ -111,7 +111,7 @@
                 android:fontFamily="@font/led_dot_matrix"
                 android:letterSpacing="0.1"
                 android:text="BAT"
-                android:textColor="#FFFFFF"
+                android:textColor="@color/widget_label_text"
                 android:textSize="10sp" />
 
             <TextView
@@ -153,7 +153,7 @@
                 android:fontFamily="@font/led_dot_matrix"
                 android:letterSpacing="0.1"
                 android:text="NET"
-                android:textColor="#FFFFFF"
+                android:textColor="@color/widget_label_text"
                 android:textSize="10sp" />
 
             <TextView

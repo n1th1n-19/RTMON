@@ -1,1 +1,7 @@
-<resources/>
+<resources>
+  <!-- Widget colors - Dark theme -->
+  <color name="widget_background">#25292E</color>
+  <color name="widget_label_text">#FFFFFF</color>
+  <color name="widget_graph_background">#25292E</color>
+  <color name="widget_grid">#1A1A1A</color>
+</resources>

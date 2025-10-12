@@ -2,4 +2,10 @@
   <color name="splashscreen_background">#000000</color>
   <color name="colorPrimary">#023c69</color>
   <color name="colorPrimaryDark">#000000</color>
+
+  <!-- Widget colors - Light theme -->
+  <color name="widget_background">#F5F5F5</color>
+  <color name="widget_label_text">#000000</color>
+  <color name="widget_graph_background">#FFFFFF</color>
+  <color name="widget_grid">#E0E0E0</color>
 </resources>

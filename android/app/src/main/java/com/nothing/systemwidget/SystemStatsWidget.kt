@@ -139,11 +139,6 @@ class SystemStatsWidget : AppWidgetProvider() {
             style = Paint.Style.FILL
         }
 
-        private val gridPaint = Paint().apply {
-            color = Color.parseColor("#1A1A1A")
-            strokeWidth = 1f
-        }
-
         internal fun updateAppWidget(
             context: Context,
             appWidgetManager: AppWidgetManager,
@@ -178,21 +173,21 @@ class SystemStatsWidget : AppWidgetProvider() {
             cpuHistory.add(cpuUsage.toFloat())
             if (cpuHistory.size > MAX_DATA_POINTS) cpuHistory.removeAt(0)
             editor.putString("cpu_history", cpuHistory.joinToString(","))
-            views.setImageViewBitmap(R.id.cpu_graph, drawGraph(cpuHistory, 240, 96, redLinePaint, redFillPaint))
+            views.setImageViewBitmap(R.id.cpu_graph, drawGraph(cpuHistory, 240, 96, redLinePaint, redFillPaint, context))
 
             // Memory Graph - Green
             val memHistory = getHistoryList(prefs, "mem_history")
             memHistory.add(memoryUsage.toFloat())
             if (memHistory.size > MAX_DATA_POINTS) memHistory.removeAt(0)
             editor.putString("mem_history", memHistory.joinToString(","))
-            views.setImageViewBitmap(R.id.memory_graph, drawGraph(memHistory, 240, 96, greenLinePaint, greenFillPaint))
+            views.setImageViewBitmap(R.id.memory_graph, drawGraph(memHistory, 240, 96, greenLinePaint, greenFillPaint, context))
 
             // Battery Graph - Blue
             val batHistory = getHistoryList(prefs, "bat_history")
             batHistory.add(batteryLevel.toFloat())
             if (batHistory.size > MAX_DATA_POINTS) batHistory.removeAt(0)
             editor.putString("bat_history", batHistory.joinToString(","))
-            views.setImageViewBitmap(R.id.battery_graph, drawGraph(batHistory, 240, 96, blueLinePaint, blueFillPaint))
+            views.setImageViewBitmap(R.id.battery_graph, drawGraph(batHistory, 240, 96, blueLinePaint, blueFillPaint, context))
 
             // Network Speed Graph - Blue (normalized to percentage for graph)
             val netHistory = getHistoryList(prefs, "net_history")
@@ -204,7 +199,7 @@ class SystemStatsWidget : AppWidgetProvider() {
             netHistory.add(normalizedSpeed)
             if (netHistory.size > MAX_DATA_POINTS) netHistory.removeAt(0)
             editor.putString("net_history", netHistory.joinToString(","))
-            views.setImageViewBitmap(R.id.network_graph, drawGraph(netHistory, 240, 96, blueLinePaint, blueFillPaint))
+            views.setImageViewBitmap(R.id.network_graph, drawGraph(netHistory, 240, 96, blueLinePaint, blueFillPaint, context))
 
             // Apply all SharedPreferences changes at once
             editor.apply()
@@ -213,19 +208,25 @@ class SystemStatsWidget : AppWidgetProvider() {
             appWidgetManager.updateAppWidget(appWidgetId, views)
         }
 
-        private fun drawGraph(dataPoints: List<Float>, width: Int, height: Int, linePaint: Paint, fillPaint: Paint): Bitmap {
+        private fun drawGraph(dataPoints: List<Float>, width: Int, height: Int, linePaint: Paint, fillPaint: Paint, context: Context): Bitmap {
             val bitmap = Bitmap.createBitmap(width, height, Bitmap.Config.ARGB_8888)
             val canvas = Canvas(bitmap)
 
-            // Draw background
-            canvas.drawColor(Color.parseColor("#25292E"))
+            // Draw background with theme-aware color
+            val graphBgColor = context.resources.getColor(R.color.widget_graph_background, context.theme)
+            canvas.drawColor(graphBgColor)
 
             if (dataPoints.isEmpty()) return bitmap
 
-            // Draw grid using cached paint
+            // Draw grid with theme-aware color
+            val gridColor = context.resources.getColor(R.color.widget_grid, context.theme)
+            val themedGridPaint = Paint().apply {
+                color = gridColor
+                strokeWidth = 1f
+            }
             for (i in 0..4) {
                 val y = height * i / 4f
-                canvas.drawLine(0f, y, width.toFloat(), y, gridPaint)
+                canvas.drawLine(0f, y, width.toFloat(), y, themedGridPaint)
             }
 
             // Calculate points
