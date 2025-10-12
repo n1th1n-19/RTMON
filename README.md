@@ -73,7 +73,7 @@ RTMON automatically adapts to your Android system theme:
 
 ### Option 1: Pre-built APK
 
-Download the latest `app-release.apk` from [Releases](https://github.com/n1th1n-19/RTMON/releases) and install.
+Download the latest `rtmon.apk` from [Releases](https://github.com/n1th1n-19/RTMON/releases) and install.
 
 ### Option 2: Build from Source
 
@@ -85,7 +85,7 @@ cd android
 ./gradlew assembleRelease
 ```
 
-**Output:** `android/app/build/outputs/apk/release/app-release.apk` (~60MB)
+**Output:** `android/app/build/outputs/apk/release/rtmon.apk` (~60MB)
 
 ### Option 3: Using EAS Build
 
