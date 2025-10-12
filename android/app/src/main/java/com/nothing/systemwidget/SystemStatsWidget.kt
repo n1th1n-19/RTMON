@@ -19,9 +19,6 @@ import android.widget.RemoteViews
 import java.io.RandomAccessFile
 import kotlin.math.roundToInt
 
-/**
- * Implementation of App Widget functionality for displaying system statistics.
- */
 class SystemStatsWidget : AppWidgetProvider() {
 
     override fun onUpdate(
@@ -29,23 +26,18 @@ class SystemStatsWidget : AppWidgetProvider() {
         appWidgetManager: AppWidgetManager,
         appWidgetIds: IntArray
     ) {
-        // Update each instance of this widget
         for (appWidgetId in appWidgetIds) {
             updateAppWidget(context, appWidgetManager, appWidgetId)
         }
-        // Start real-time updates
         startRealtimeUpdates(context)
     }
 
     override fun onEnabled(context: Context) {
-        // Start real-time updates when first widget is added
         startRealtimeUpdates(context)
     }
 
     override fun onDisabled(context: Context) {
-        // Stop real-time updates when last widget is removed
         stopRealtimeUpdates(context)
-        // Clear bitmap cache to free memory
         clearBitmapCache()
     }
 
@@ -61,12 +53,10 @@ class SystemStatsWidget : AppWidgetProvider() {
             PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
         )
 
-        // Update every 3 seconds for better battery efficiency
-        // Reduced from 2s to 3s to lower battery drain while maintaining good responsiveness
         alarmManager.setRepeating(
             AlarmManager.ELAPSED_REALTIME,
             SystemClock.elapsedRealtime(),
-            3000L, // 3 seconds - optimized for battery life
+            3000L,
             pendingIntent
         )
     }
@@ -100,11 +90,10 @@ class SystemStatsWidget : AppWidgetProvider() {
     companion object {
         private const val ACTION_UPDATE_WIDGET = "com.nothing.systemwidget.UPDATE_WIDGET"
         private const val PREFS_NAME = "SystemStatsWidget"
-        private const val MAX_DATA_POINTS = 20  // 20 points × 3 seconds = 60 seconds of history
+        private const val MAX_DATA_POINTS = 20
 
-        // Cached Paint objects to avoid recreation - memory efficient
         private val redLinePaint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
-            color = Color.parseColor("#FF0000")  // Red for CPU
+            color = Color.parseColor("#FF0000")
             strokeWidth = 4f
             style = Paint.Style.STROKE
             strokeJoin = Paint.Join.ROUND
@@ -112,12 +101,12 @@ class SystemStatsWidget : AppWidgetProvider() {
         }
 
         private val redFillPaint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
-            color = Color.parseColor("#22FF0000")  // Red transparent
+            color = Color.parseColor("#22FF0000")
             style = Paint.Style.FILL
         }
 
         private val greenLinePaint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
-            color = Color.parseColor("#00FF00")  // Green for Memory
+            color = Color.parseColor("#00FF00")
             strokeWidth = 4f
             style = Paint.Style.STROKE
             strokeJoin = Paint.Join.ROUND
@@ -125,12 +114,12 @@ class SystemStatsWidget : AppWidgetProvider() {
         }
 
         private val greenFillPaint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
-            color = Color.parseColor("#2200FF00")  // Green transparent
+            color = Color.parseColor("#2200FF00")
             style = Paint.Style.FILL
         }
 
         private val blueLinePaint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
-            color = Color.parseColor("#0099FF")  // Blue for Battery & Network
+            color = Color.parseColor("#0099FF")
             strokeWidth = 4f
             style = Paint.Style.STROKE
             strokeJoin = Paint.Join.ROUND
@@ -138,24 +127,20 @@ class SystemStatsWidget : AppWidgetProvider() {
         }
 
         private val blueFillPaint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
-            color = Color.parseColor("#220099FF")  // Blue transparent
+            color = Color.parseColor("#220099FF")
             style = Paint.Style.FILL
         }
 
-        // Cached grid paint to avoid recreation on every draw
         private val gridPaint = Paint().apply {
             strokeWidth = 1f
         }
 
-        // Cache for theme colors to avoid repeated resource lookups
         private var cachedGraphBgColor: Int? = null
         private var cachedGridColor: Int? = null
         private var lastThemeHash: Int = 0
 
-        // Bitmap cache to reuse bitmaps instead of creating new ones
         private val bitmapCache = mutableMapOf<String, Bitmap>()
 
-        // Clear bitmap cache to free memory
         fun clearBitmapCache() {
             bitmapCache.values.forEach { it.recycle() }
             bitmapCache.clear()
@@ -168,54 +153,46 @@ class SystemStatsWidget : AppWidgetProvider() {
             appWidgetManager: AppWidgetManager,
             appWidgetId: Int
         ) {
-            // Skip update if screen is off to save battery
             val powerManager = context.getSystemService(Context.POWER_SERVICE) as PowerManager
             if (!powerManager.isInteractive) {
                 return
             }
-            // Construct the RemoteViews object
+
             val views = RemoteViews(context.packageName, R.layout.widget_system_stats)
 
-            // Get system stats
             val cpuUsage = getCpuUsage()
             val memoryUsage = getMemoryUsage(context)
             val batteryLevel = getBatteryLevel(context)
             val networkSpeed = getNetworkSpeed()
 
-            // Update text views with formatted percentages
             views.setTextViewText(R.id.cpu_usage_text, String.format("%02d%%", cpuUsage))
             views.setTextViewText(R.id.memory_usage_text, String.format("%02d%%", memoryUsage))
             views.setTextViewText(R.id.battery_level_text, String.format("%02d%%", batteryLevel))
             views.setTextViewText(R.id.network_speed_text, formatSpeed(networkSpeed))
 
-            // Store history and draw graphs
             val prefs = context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
-            val editor = prefs.edit() // Batch all writes together
+            val editor = prefs.edit()
 
-            // CPU Graph - Red
             val cpuHistory = getHistoryList(prefs, "cpu_history")
             cpuHistory.add(cpuUsage.toFloat())
             if (cpuHistory.size > MAX_DATA_POINTS) cpuHistory.removeAt(0)
             editor.putString("cpu_history", cpuHistory.joinToString(","))
             views.setImageViewBitmap(R.id.cpu_graph, drawGraph(cpuHistory, 240, 96, redLinePaint, redFillPaint, context))
 
-            // Memory Graph - Green
             val memHistory = getHistoryList(prefs, "mem_history")
             memHistory.add(memoryUsage.toFloat())
             if (memHistory.size > MAX_DATA_POINTS) memHistory.removeAt(0)
             editor.putString("mem_history", memHistory.joinToString(","))
             views.setImageViewBitmap(R.id.memory_graph, drawGraph(memHistory, 240, 96, greenLinePaint, greenFillPaint, context))
 
-            // Battery Graph - Blue
             val batHistory = getHistoryList(prefs, "bat_history")
             batHistory.add(batteryLevel.toFloat())
             if (batHistory.size > MAX_DATA_POINTS) batHistory.removeAt(0)
             editor.putString("bat_history", batHistory.joinToString(","))
             views.setImageViewBitmap(R.id.battery_graph, drawGraph(batHistory, 240, 96, blueLinePaint, blueFillPaint, context))
 
-            // Network Speed Graph - Blue (normalized to percentage for graph)
             val netHistory = getHistoryList(prefs, "net_history")
-            val maxSpeed = prefs.getFloat("max_speed", 1048576f) // Start with 1 MB/s as baseline
+            val maxSpeed = prefs.getFloat("max_speed", 1048576f)
             val normalizedSpeed = ((networkSpeed / maxSpeed) * 100f).coerceAtMost(100f)
             if (networkSpeed > maxSpeed) {
                 editor.putFloat("max_speed", networkSpeed)
@@ -225,24 +202,18 @@ class SystemStatsWidget : AppWidgetProvider() {
             editor.putString("net_history", netHistory.joinToString(","))
             views.setImageViewBitmap(R.id.network_graph, drawGraph(netHistory, 240, 96, blueLinePaint, blueFillPaint, context))
 
-            // Apply all SharedPreferences changes at once
             editor.apply()
-
-            // Instruct the widget manager to update the widget
             appWidgetManager.updateAppWidget(appWidgetId, views)
         }
 
         private fun drawGraph(dataPoints: List<Float>, width: Int, height: Int, linePaint: Paint, fillPaint: Paint, context: Context): Bitmap {
-            // Generate cache key based on paint color
             val cacheKey = "${linePaint.color}_${width}_${height}"
 
-            // Reuse existing bitmap or create new one
             val bitmap = bitmapCache.getOrPut(cacheKey) {
                 Bitmap.createBitmap(width, height, Bitmap.Config.ARGB_8888)
             }
             val canvas = Canvas(bitmap)
 
-            // Cache theme colors to avoid repeated resource lookups
             val currentThemeHash = context.resources.configuration.uiMode
             if (currentThemeHash != lastThemeHash || cachedGraphBgColor == null) {
                 cachedGraphBgColor = context.resources.getColor(R.color.widget_graph_background, context.theme)
@@ -250,19 +221,16 @@ class SystemStatsWidget : AppWidgetProvider() {
                 lastThemeHash = currentThemeHash
             }
 
-            // Draw background with cached color
             canvas.drawColor(cachedGraphBgColor!!)
 
             if (dataPoints.isEmpty()) return bitmap
 
-            // Draw grid with cached paint and color
             gridPaint.color = cachedGridColor!!
             for (i in 0..4) {
                 val y = height * i / 4f
                 canvas.drawLine(0f, y, width.toFloat(), y, gridPaint)
             }
 
-            // Calculate points
             val path = Path()
             val fillPath = Path()
             val stepX = width.toFloat() / (MAX_DATA_POINTS - 1).coerceAtLeast(1)
@@ -284,7 +252,6 @@ class SystemStatsWidget : AppWidgetProvider() {
             fillPath.lineTo(stepX * (dataPoints.size - 1), height.toFloat())
             fillPath.close()
 
-            // Draw using provided paint objects (memory efficient - reused)
             canvas.drawPath(fillPath, fillPaint)
             canvas.drawPath(path, linePaint)
 
@@ -337,21 +304,18 @@ class SystemStatsWidget : AppWidgetProvider() {
             lastTxBytes = txBytes
             lastNetworkTime = currentTime
 
-            // Convert to bytes per second
             val speedBytesPerSec = (totalBytes.toFloat() / (timeDelta / 1000f))
             return speedBytesPerSec.coerceAtLeast(0f)
         }
 
         private fun getCpuUsage(): Int {
             return try {
-                // Read /proc/stat for CPU stats
                 val reader = RandomAccessFile("/proc/stat", "r")
                 val load = reader.readLine()
                 reader.close()
 
                 val toks = load.split(" +".toRegex())
 
-                // Ensure we have enough tokens
                 if (toks.size < 9) return 0
 
                 val idle = toks[4].toLongOrNull() ?: return 0
@@ -370,7 +334,6 @@ class SystemStatsWidget : AppWidgetProvider() {
                     if (totalDelta > 0) {
                         ((cpuDelta.toFloat() / totalDelta.toFloat()) * 100f).roundToInt()
                     } else {
-                        // If deltas are same, calculate instant usage
                         val total = cpu + idle
                         if (total > 0) {
                             ((cpu.toFloat() / total.toFloat()) * 100f).roundToInt()
@@ -379,7 +342,6 @@ class SystemStatsWidget : AppWidgetProvider() {
                         }
                     }
                 } else {
-                    // First run - calculate instant usage
                     val total = cpu + idle
                     if (total > 0) {
                         ((cpu.toFloat() / total.toFloat()) * 100f).roundToInt()
@@ -393,7 +355,6 @@ class SystemStatsWidget : AppWidgetProvider() {
 
                 usage
             } catch (e: Exception) {
-                // Fallback: return a random value between 10-30 to show activity
                 (10..30).random()
             }
         }
