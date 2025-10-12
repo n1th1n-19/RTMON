@@ -45,6 +45,8 @@ class SystemStatsWidget : AppWidgetProvider() {
     override fun onDisabled(context: Context) {
         // Stop real-time updates when last widget is removed
         stopRealtimeUpdates(context)
+        // Clear bitmap cache to free memory
+        clearBitmapCache()
     }
 
     private fun startRealtimeUpdates(context: Context) {
@@ -59,11 +61,12 @@ class SystemStatsWidget : AppWidgetProvider() {
             PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
         )
 
-        // Update every 2 seconds for optimal battery efficiency
+        // Update every 3 seconds for better battery efficiency
+        // Reduced from 2s to 3s to lower battery drain while maintaining good responsiveness
         alarmManager.setRepeating(
             AlarmManager.ELAPSED_REALTIME,
             SystemClock.elapsedRealtime(),
-            2000L, // 2 seconds - balanced performance and battery life
+            3000L, // 3 seconds - optimized for battery life
             pendingIntent
         )
     }
@@ -97,7 +100,7 @@ class SystemStatsWidget : AppWidgetProvider() {
     companion object {
         private const val ACTION_UPDATE_WIDGET = "com.nothing.systemwidget.UPDATE_WIDGET"
         private const val PREFS_NAME = "SystemStatsWidget"
-        private const val MAX_DATA_POINTS = 30
+        private const val MAX_DATA_POINTS = 20  // 20 points × 3 seconds = 60 seconds of history
 
         // Cached Paint objects to avoid recreation - memory efficient
         private val redLinePaint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
@@ -137,6 +140,27 @@ class SystemStatsWidget : AppWidgetProvider() {
         private val blueFillPaint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
             color = Color.parseColor("#220099FF")  // Blue transparent
             style = Paint.Style.FILL
+        }
+
+        // Cached grid paint to avoid recreation on every draw
+        private val gridPaint = Paint().apply {
+            strokeWidth = 1f
+        }
+
+        // Cache for theme colors to avoid repeated resource lookups
+        private var cachedGraphBgColor: Int? = null
+        private var cachedGridColor: Int? = null
+        private var lastThemeHash: Int = 0
+
+        // Bitmap cache to reuse bitmaps instead of creating new ones
+        private val bitmapCache = mutableMapOf<String, Bitmap>()
+
+        // Clear bitmap cache to free memory
+        fun clearBitmapCache() {
+            bitmapCache.values.forEach { it.recycle() }
+            bitmapCache.clear()
+            cachedGraphBgColor = null
+            cachedGridColor = null
         }
 
         internal fun updateAppWidget(
@@ -209,24 +233,33 @@ class SystemStatsWidget : AppWidgetProvider() {
         }
 
         private fun drawGraph(dataPoints: List<Float>, width: Int, height: Int, linePaint: Paint, fillPaint: Paint, context: Context): Bitmap {
-            val bitmap = Bitmap.createBitmap(width, height, Bitmap.Config.ARGB_8888)
+            // Generate cache key based on paint color
+            val cacheKey = "${linePaint.color}_${width}_${height}"
+
+            // Reuse existing bitmap or create new one
+            val bitmap = bitmapCache.getOrPut(cacheKey) {
+                Bitmap.createBitmap(width, height, Bitmap.Config.ARGB_8888)
+            }
             val canvas = Canvas(bitmap)
 
-            // Draw background with theme-aware color
-            val graphBgColor = context.resources.getColor(R.color.widget_graph_background, context.theme)
-            canvas.drawColor(graphBgColor)
+            // Cache theme colors to avoid repeated resource lookups
+            val currentThemeHash = context.resources.configuration.uiMode
+            if (currentThemeHash != lastThemeHash || cachedGraphBgColor == null) {
+                cachedGraphBgColor = context.resources.getColor(R.color.widget_graph_background, context.theme)
+                cachedGridColor = context.resources.getColor(R.color.widget_grid, context.theme)
+                lastThemeHash = currentThemeHash
+            }
+
+            // Draw background with cached color
+            canvas.drawColor(cachedGraphBgColor!!)
 
             if (dataPoints.isEmpty()) return bitmap
 
-            // Draw grid with theme-aware color
-            val gridColor = context.resources.getColor(R.color.widget_grid, context.theme)
-            val themedGridPaint = Paint().apply {
-                color = gridColor
-                strokeWidth = 1f
-            }
+            // Draw grid with cached paint and color
+            gridPaint.color = cachedGridColor!!
             for (i in 0..4) {
                 val y = height * i / 4f
-                canvas.drawLine(0f, y, width.toFloat(), y, themedGridPaint)
+                canvas.drawLine(0f, y, width.toFloat(), y, gridPaint)
             }
 
             // Calculate points
