@@ -7,7 +7,7 @@ A sleek, real-time system monitoring widget for Android, designed with a **retro
 ## 📸 Screenshots
 
 <p align="center">
-  <img src="assets/screenshots/shots.jpg" width="45%" alt="screenshot"/>
+  <img src="assets/screenshots/shots.jpg"  alt="screenshot"/>
 </p>
 
 ---
