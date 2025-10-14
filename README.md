@@ -311,6 +311,7 @@ MIT License - See [LICENSE](LICENSE) for details
 - Basic system stats display
 - React Native app interface
 - Simulated CPU monitoring
+- Partially built using Claude Code
 
 ---
 
