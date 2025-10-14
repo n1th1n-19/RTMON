@@ -12,16 +12,16 @@ A sleek, real-time system monitoring widget for Android, designed with a **retro
 
 ## ✨ Features
 
-* **Real-Time CPU Monitoring** - True CPU usage from `/proc/stat`
-* **RAM Usage Tracking** - Live memory monitoring via ActivityManager
-* **Battery Level Monitoring** - Real-time battery percentage with historical graph
-* **Network Speed** - Live network traffic in KB/s and MB/s
-* **Color-Coded Graphs** - Red (CPU), Green (RAM), Blue (Battery/Network)
-* **LED Dot-Matrix Font** - Custom retro aesthetic branding
-* **System Theme Support** - Automatically adapts to dark/light mode
-* **Battery Optimized** - 2-second refresh rate, pauses when screen off
-* **Memory Efficient** - Cached Paint objects, batched writes
-* **Compact Design** - Optimized for home screen widgets
+- **Real-Time CPU Monitoring** - True CPU usage from `/proc/stat`
+- **RAM Usage Tracking** - Live memory monitoring via ActivityManager
+- **Battery Level Monitoring** - Real-time battery percentage with historical graph
+- **Network Speed** - Live network traffic in KB/s and MB/s
+- **Color-Coded Graphs** - Red (CPU), Green (RAM), Blue (Battery/Network)
+- **LED Dot-Matrix Font** - Custom retro aesthetic branding
+- **System Theme Support** - Automatically adapts to dark/light mode
+- **Battery Optimized** - 2-second refresh rate, pauses when screen off
+- **Memory Efficient** - Cached Paint objects, batched writes
+- **Compact Design** - Optimized for home screen widgets
 
 ---
 
@@ -30,18 +30,21 @@ A sleek, real-time system monitoring widget for Android, designed with a **retro
 RTMON automatically adapts to your Android system theme:
 
 ### Light Theme
+
 - Light gray background (#F5F5F5)
 - Black labels for readability
 - White graph backgrounds
 - Light gray grid lines
 
 ### Dark Theme
+
 - Dark gray background (#25292E)
 - White labels for contrast
 - Dark graph backgrounds
 - Dark grid lines
 
 **Graph colors remain vibrant in both themes:**
+
 - 🔴 CPU: Red
 - 🟢 RAM: Green
 - 🔵 Battery: Blue
@@ -51,22 +54,23 @@ RTMON automatically adapts to your Android system theme:
 
 ## 🛠 Technical Details
 
-| Property             | Value                           |
-| -------------------- | ------------------------------- |
-| Update Frequency     | 3 seconds (battery optimized)  |
-| Graph Data Points    | 20 (60-second history)          |
-| Font                 | LED Dot-Matrix 400              |
-| Update Cycle Time    | 20–35 ms                        |
-| Memory Usage         | ~30-40 KB per update            |
-| CPU Impact           | 0.3–0.8%                        |
-| Battery Drain        | ~1.5-2% per hour (screen on)    |
-| Screen Off Impact    | 0% (updates paused)             |
-| Border Radius        | 28dp                            |
-| Padding              | 16dp                            |
-| Graph Height         | 40dp (full-width)               |
-| Line Thickness       | 4f                              |
+| Property          | Value                         |
+| ----------------- | ----------------------------- |
+| Update Frequency  | 3 seconds (battery optimized) |
+| Graph Data Points | 20 (60-second history)        |
+| Font              | LED Dot-Matrix 400            |
+| Update Cycle Time | 20–35 ms                      |
+| Memory Usage      | ~30-40 KB per update          |
+| CPU Impact        | 0.3–0.8%                      |
+| Battery Drain     | ~1.5-2% per hour (screen on)  |
+| Screen Off Impact | 0% (updates paused)           |
+| Border Radius     | 28dp                          |
+| Padding           | 16dp                          |
+| Graph Height      | 40dp (full-width)             |
+| Line Thickness    | 4f                            |
 
 ### Architecture
+
 - **Native Kotlin Widget** - No React Native overhead
 - **Direct System APIs** - `/proc/stat`, ActivityManager, TrafficStats
 - **Canvas Rendering** - Hardware-accelerated GPU drawing with bitmap caching
@@ -116,7 +120,9 @@ eas build --platform android --profile production
 ## 🧰 Customization
 
 ### Change Update Frequency
+
 Edit `SystemStatsWidget.kt:67`:
+
 ```kotlin
 alarmManager.setRepeating(
     AlarmManager.ELAPSED_REALTIME,
@@ -127,13 +133,17 @@ alarmManager.setRepeating(
 ```
 
 ### Adjust Graph History
+
 Modify `SystemStatsWidget.kt:101`:
+
 ```kotlin
 private const val MAX_DATA_POINTS = 20  // Change history length (20 × 3s = 60s)
 ```
 
 ### Customize Theme Colors
+
 Edit `values/colors.xml` (light theme) or `values-night/colors.xml` (dark theme):
+
 ```xml
 <color name="widget_background">#F5F5F5</color>
 <color name="widget_label_text">#000000</color>
@@ -142,7 +152,9 @@ Edit `values/colors.xml` (light theme) or `values-night/colors.xml` (dark theme)
 ```
 
 ### Change Graph Colors
+
 Edit Paint objects in `SystemStatsWidget.kt:105-142`:
+
 ```kotlin
 private val redLinePaint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
     color = Color.parseColor("#FF0000")  // Customize color
@@ -155,21 +167,27 @@ private val redLinePaint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
 ## 🚀 Building for Production
 
 ### Debug APK
+
 ```bash
 cd android
 ./gradlew assembleDebug
 ```
+
 **Output:** `android/app/build/outputs/apk/debug/app-debug.apk` (~134MB)
 
 ### Release APK
+
 ```bash
 cd android
 ./gradlew assembleRelease
 ```
+
 **Output:** `android/app/build/outputs/apk/release/app-release.apk` (~60MB)
 
 ### Signed APK
+
 1. Generate keystore:
+
 ```bash
 keytool -genkeypair -v -storetype PKCS12 -keystore release.keystore \
   -alias rtmon-key -keyalg RSA -keysize 2048 -validity 10000
@@ -178,6 +196,7 @@ keytool -genkeypair -v -storetype PKCS12 -keystore release.keystore \
 2. Configure signing in `android/app/build.gradle`
 
 3. Build signed release:
+
 ```bash
 ./gradlew assembleRelease
 ```
@@ -187,16 +206,19 @@ keytool -genkeypair -v -storetype PKCS12 -keystore release.keystore \
 ## 🐛 Troubleshooting
 
 ### Widget Not Appearing
+
 - Verify `AndroidManifest.xml` has widget receiver configured
 - Check widget layout XML files exist in `res/layout/`
 - Ensure app is installed and permissions granted
 
 ### Stats Not Updating
+
 - Check battery optimization settings (Settings → Battery → App optimization)
 - Verify background update permissions
 - View logs: `adb logcat | grep SystemStatsWidget`
 
 ### Build Errors
+
 ```bash
 # Clean and rebuild
 cd android
@@ -206,6 +228,7 @@ npx expo prebuild --platform android --clean
 ```
 
 ### Theme Not Switching
+
 - Ensure device is running Android 10+ for automatic theme detection
 - Check system theme in Settings → Display → Dark mode
 - Restart widget after theme change
@@ -226,12 +249,14 @@ npx expo prebuild --platform android --clean
 ## 📊 Performance Metrics
 
 ### Per Update Cycle (every 3 seconds)
+
 - Memory Allocation: ~30-40KB (50% reduction via bitmap caching)
 - CPU Time: ~20-35ms (improved rendering efficiency)
 - Battery Impact: ~1.5-2% per hour (screen on, 50% improvement)
 - Zero Impact: When screen is off (updates paused)
 
 ### Optimization Features
+
 ✅ **Screen-off detection** - Pauses updates when screen is off
 ✅ **Bitmap caching** - Reuses bitmaps instead of creating new ones (4 bitmaps per update saved)
 ✅ **Cached Paint objects** - Pre-allocated graphics (no runtime allocation)
@@ -252,6 +277,7 @@ See [ROADMAP.md](ROADMAP.md) for future development plans and Nothing Phone inte
 ## 🤝 Contributing
 
 Contributions are welcome! Please:
+
 1. Fork the repository
 2. Create a feature branch (`git checkout -b feature/amazing-feature`)
 3. Commit your changes (`git commit -m 'Add amazing feature'`)
@@ -286,6 +312,7 @@ MIT License - See [LICENSE](LICENSE) for details
 ## 📈 Version History
 
 ### v2.2.0 - Battery Optimization (Latest)
+
 - ✅ **50% battery improvement** - Reduced from 2.5-4% to 1.5-2% per hour
 - ✅ **Bitmap caching** - Reuses bitmaps instead of creating new ones
 - ✅ **Theme color caching** - Cached resource lookups
@@ -293,12 +320,14 @@ MIT License - See [LICENSE](LICENSE) for details
 - ✅ **Reduced memory usage** - 30-40KB per update (down from 50-55KB)
 
 ### v2.1.0 - Theme Support
+
 - ✅ **System theme adaptation** - Automatic dark/light mode switching
 - ✅ **Enhanced UI** - Improved spacing and full-width graphs
 - ✅ **Color-coded stats** - Red/Green/Blue for different metrics
 - ✅ **Battery optimization** - Initial 2-second refresh rate
 
 ### v2.0.0 - RTMON Update
+
 - ✅ **Real CPU monitoring** from `/proc/stat`
 - ✅ **Network speed tracking** with adaptive scaling
 - ✅ **Color-coded graphs** - Red (CPU), Green (Memory), Blue (Battery/Network)
@@ -306,6 +335,7 @@ MIT License - See [LICENSE](LICENSE) for details
 - ✅ **Native widget** implementation in Kotlin
 
 ### v1.0.0 - Initial Release
+
 - Basic system stats display
 - React Native app interface
 - Simulated CPU monitoring
