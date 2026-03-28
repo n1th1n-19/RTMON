@@ -1,17 +1,4 @@
-node_modules
-.expo/
-.expo-shared/
-dist/
-npm-debug.*
-*.jks
-*.p8
-*.p12
-*.key
-*.mobileprovision
-*.orig.*
-web-build/
-
-# Android build files
+# Android build outputs
 android/app/build/
 android/build/
 android/.gradle/
@@ -20,9 +7,6 @@ android/local.properties
 *.apk
 *.aab
 
-# iOS
-ios/
-
 # IDE
 .idea/
 .vscode/
@@ -30,5 +14,5 @@ ios/
 # macOS
 .DS_Store
 
-# Temporary files created by Metro to check the health of the file watcher
-.metro-health-check*
+# Personal notes
+personal/
