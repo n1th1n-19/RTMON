@@ -107,7 +107,6 @@ adb logcat | grep SystemStatsWidget
 - Android only
 - Network speed is device-wide, not per-app
 - Dark/light auto-switching requires Android 10+
-- Exact alarm permission required on Android 12+ (prompted on first run)
 
 ---
 

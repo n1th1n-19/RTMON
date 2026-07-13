@@ -15,6 +15,7 @@ import android.os.BatteryManager
 import android.os.Build
 import android.os.PowerManager
 import android.os.SystemClock
+import android.util.Log
 import android.widget.RemoteViews
 import java.io.RandomAccessFile
 import kotlin.math.roundToInt
@@ -177,19 +178,19 @@ class SystemStatsWidget : AppWidgetProvider() {
             cpuHistory.add(cpuUsage.toFloat())
             if (cpuHistory.size > MAX_DATA_POINTS) cpuHistory.removeAt(0)
             editor.putString("cpu_history", cpuHistory.joinToString(","))
-            views.setImageViewBitmap(R.id.cpu_graph, drawGraph(cpuHistory, 240, 96, redLinePaint, redFillPaint, context))
+            views.setImageViewBitmap(R.id.cpu_graph, drawGraph("cpu", cpuHistory, 240, 96, redLinePaint, redFillPaint, context))
 
             val memHistory = getHistoryList(prefs, "mem_history")
             memHistory.add(memoryUsage.toFloat())
             if (memHistory.size > MAX_DATA_POINTS) memHistory.removeAt(0)
             editor.putString("mem_history", memHistory.joinToString(","))
-            views.setImageViewBitmap(R.id.memory_graph, drawGraph(memHistory, 240, 96, greenLinePaint, greenFillPaint, context))
+            views.setImageViewBitmap(R.id.memory_graph, drawGraph("mem", memHistory, 240, 96, greenLinePaint, greenFillPaint, context))
 
             val batHistory = getHistoryList(prefs, "bat_history")
             batHistory.add(batteryLevel.toFloat())
             if (batHistory.size > MAX_DATA_POINTS) batHistory.removeAt(0)
             editor.putString("bat_history", batHistory.joinToString(","))
-            views.setImageViewBitmap(R.id.battery_graph, drawGraph(batHistory, 240, 96, blueLinePaint, blueFillPaint, context))
+            views.setImageViewBitmap(R.id.battery_graph, drawGraph("battery", batHistory, 240, 96, blueLinePaint, blueFillPaint, context))
 
             val netHistory = getHistoryList(prefs, "net_history")
             val maxSpeed = prefs.getFloat("max_speed", 1048576f)
@@ -200,16 +201,14 @@ class SystemStatsWidget : AppWidgetProvider() {
             netHistory.add(normalizedSpeed)
             if (netHistory.size > MAX_DATA_POINTS) netHistory.removeAt(0)
             editor.putString("net_history", netHistory.joinToString(","))
-            views.setImageViewBitmap(R.id.network_graph, drawGraph(netHistory, 240, 96, blueLinePaint, blueFillPaint, context))
+            views.setImageViewBitmap(R.id.network_graph, drawGraph("net", netHistory, 240, 96, blueLinePaint, blueFillPaint, context))
 
             editor.apply()
             appWidgetManager.updateAppWidget(appWidgetId, views)
         }
 
-        private fun drawGraph(dataPoints: List<Float>, width: Int, height: Int, linePaint: Paint, fillPaint: Paint, context: Context): Bitmap {
-            val cacheKey = "${linePaint.color}_${width}_${height}"
-
-            val bitmap = bitmapCache.getOrPut(cacheKey) {
+        private fun drawGraph(id: String, dataPoints: List<Float>, width: Int, height: Int, linePaint: Paint, fillPaint: Paint, context: Context): Bitmap {
+            val bitmap = bitmapCache.getOrPut(id) {
                 Bitmap.createBitmap(width, height, Bitmap.Config.ARGB_8888)
             }
             val canvas = Canvas(bitmap)
@@ -269,6 +268,7 @@ class SystemStatsWidget : AppWidgetProvider() {
 
         private var lastCpuTotal = 0L
         private var lastCpuIdle = 0L
+        private var lastCpuUsage = 0
         private var lastRxBytes = 0L
         private var lastTxBytes = 0L
         private var lastNetworkTime = 0L
@@ -316,9 +316,12 @@ class SystemStatsWidget : AppWidgetProvider() {
 
                 val toks = load.split(" +".toRegex())
 
-                if (toks.size < 9) return 0
+                if (toks.size < 9) {
+                    Log.w("SystemStatsWidget", "Unexpected /proc/stat format, reporting last known CPU usage")
+                    return lastCpuUsage
+                }
 
-                val idle = toks[4].toLongOrNull() ?: return 0
+                val idle = toks[4].toLongOrNull() ?: return lastCpuUsage
                 val cpu = (toks[1].toLongOrNull() ?: 0L) +
                          (toks[2].toLongOrNull() ?: 0L) +
                          (toks[3].toLongOrNull() ?: 0L) +
@@ -352,10 +355,12 @@ class SystemStatsWidget : AppWidgetProvider() {
 
                 lastCpuTotal = cpu
                 lastCpuIdle = idle
+                lastCpuUsage = usage
 
                 usage
             } catch (e: Exception) {
-                (10..30).random()
+                Log.w("SystemStatsWidget", "Failed to read /proc/stat, reporting last known CPU usage", e)
+                lastCpuUsage
             }
         }
 
