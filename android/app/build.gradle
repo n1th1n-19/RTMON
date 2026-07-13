@@ -14,6 +14,9 @@ android {
         versionCode 1
         versionName "1.0.0"
     }
+    def releaseKeystorePath = System.getenv('SIGNING_KEYSTORE_PATH')
+    def hasReleaseSigning = releaseKeystorePath != null && file(releaseKeystorePath).exists()
+
     signingConfigs {
         debug {
             storeFile file('debug.keystore')
@@ -21,13 +24,21 @@ android {
             keyAlias 'androiddebugkey'
             keyPassword 'android'
         }
+        if (hasReleaseSigning) {
+            release {
+                storeFile file(releaseKeystorePath)
+                storePassword System.getenv('SIGNING_STORE_PASSWORD')
+                keyAlias System.getenv('SIGNING_KEY_ALIAS')
+                keyPassword System.getenv('SIGNING_KEY_PASSWORD')
+            }
+        }
     }
     buildTypes {
         debug {
             signingConfig signingConfigs.debug
         }
         release {
-            signingConfig signingConfigs.debug
+            signingConfig hasReleaseSigning ? signingConfigs.release : signingConfigs.debug
             minifyEnabled true
             proguardFiles getDefaultProguardFile("proguard-android-optimize.txt"), "proguard-rules.pro"
         }
