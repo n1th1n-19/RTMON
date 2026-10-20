@@ -1,6 +1,9 @@
-name: Release signed APK
+name: Build and release APK
 
 on:
+  pull_request:
+    paths-ignore:
+      - '**.md'
   push:
     branches: [main]
     paths-ignore:
@@ -11,7 +14,8 @@ permissions:
   contents: write
 
 jobs:
-  build-and-release:
+  check:
+    if: github.event_name == 'pull_request'
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -20,12 +24,36 @@ jobs:
         with:
           distribution: temurin
           java-version: '17'
+          cache: gradle
+
+      - name: Build and lint
+        working-directory: android
+        run: |
+          chmod +x gradlew
+          ./gradlew assembleRelease lintRelease
+
+  build-and-release:
+    if: github.event_name == 'push'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '17'
+          cache: gradle
 
       - name: Decode release keystore
         working-directory: android/app
         env:
           SIGNING_KEYSTORE_BASE64: ${{ secrets.SIGNING_KEYSTORE_BASE64 }}
-        run: echo "$SIGNING_KEYSTORE_BASE64" | base64 -d > release.keystore
+        run: |
+          if [ -z "$SIGNING_KEYSTORE_BASE64" ]; then
+            echo "::error::SIGNING_KEYSTORE_BASE64 secret missing; refusing to release a debug-signed APK"
+            exit 1
+          fi
+          echo "$SIGNING_KEYSTORE_BASE64" | base64 -d > release.keystore
 
       - name: Build signed release APK
         working-directory: android
@@ -34,6 +62,7 @@ jobs:
           SIGNING_STORE_PASSWORD: ${{ secrets.SIGNING_STORE_PASSWORD }}
           SIGNING_KEY_ALIAS: ${{ secrets.SIGNING_KEY_ALIAS }}
           SIGNING_KEY_PASSWORD: ${{ secrets.SIGNING_KEY_PASSWORD }}
+          VERSION_CODE: ${{ github.run_number }}
         run: |
           chmod +x gradlew
           ./gradlew assembleRelease

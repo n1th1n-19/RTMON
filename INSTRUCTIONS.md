@@ -116,10 +116,10 @@ cd android
 
 ### Update interval
 
-Edit `SystemStatsWidget.kt` in `startRealtimeUpdates()`:
+Edit `REFRESH_MS` in `SystemStatsWidget.kt`:
 
 ```kotlin
-3000L  // milliseconds — 1000 = 1s, 3000 = 3s (default), 5000 = 5s
+private const val REFRESH_MS = 3000L  // milliseconds — 1000 = 1s, 3000 = 3s (default), 5000 = 5s
 ```
 
 Battery impact: ~4-5%/hr at 1s, ~1.5-2%/hr at 3s, ~1%/hr at 5s

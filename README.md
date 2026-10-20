@@ -12,7 +12,7 @@ A real-time system monitoring widget for Android. Shows live CPU, RAM, battery, 
 - Color-coded line graphs with 60-second history
 - LED Dot-Matrix font
 - Automatic light and dark theme support
-- 3-second refresh rate, zero drain when screen is off
+- 3-second refresh rate (needs the "Alarms & reminders" permission on Android 13+ — open the RTMON app icon once to grant it; otherwise ~5–10s), zero drain when screen is off
 - Widget only — no app UI
 
 ---
@@ -45,10 +45,10 @@ APK output: `app/build/outputs/apk/release/app-release.apk`
 
 All customization is done by editing source files and rebuilding.
 
-**Refresh rate** — `SystemStatsWidget.kt`, inside `startRealtimeUpdates()`:
+**Refresh rate** — `SystemStatsWidget.kt`:
 
 ```kotlin
-3000L  // interval in milliseconds
+private const val REFRESH_MS = 3000L  // interval in milliseconds
 ```
 
 **Graph history** — `SystemStatsWidget.kt`:
@@ -83,6 +83,8 @@ private const val MAX_DATA_POINTS = 20  // 20 points × 3s = 60s
 
 ## Troubleshooting
 
+**CPU shows `--`** — the device exposes neither `/proc/stat` nor cpufreq to apps (common on emulators)
+
 **Stats frozen** — disable battery optimization: Settings → Apps → RTMON → Battery → Unrestricted
 
 **Widget missing** — reinstall the APK, then re-add the widget
@@ -106,6 +108,7 @@ adb logcat | grep SystemStatsWidget
 
 - Android only
 - Network speed is device-wide, not per-app
+- Android 8+ blocks `/proc/stat` for apps, so CPU there is *frequency load* (current clock ÷ max clock across cores), not true utilisation
 - Dark/light auto-switching requires Android 10+
 
 ---
