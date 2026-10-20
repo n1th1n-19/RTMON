@@ -81,6 +81,13 @@ private const val MAX_DATA_POINTS = 20  // 20 points × 3s = 60s
 
 ---
 
+## Releasing
+
+- **New version:** Actions → *Build and release APK* → **Run workflow** (on `main`) → pick `patch` / `minor` / `major`. Tags the next version (e.g. `v1.0.1`), builds a signed APK and publishes it as the latest release.
+- **Every merge to `main`:** publishes a pre-release dev build (`v1.0.0-dev.<n>`).
+
+---
+
 ## Troubleshooting
 
 **CPU shows `--`** — the device exposes neither `/proc/stat` nor cpufreq to apps (common on emulators)

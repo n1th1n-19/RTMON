@@ -11,9 +11,9 @@ android {
         applicationId 'com.nothing.systemwidget'
         minSdk 23
         targetSdk 34
-        // CI passes the run number so each release installs as an upgrade.
+        // CI passes these (commit count, tag-derived name) so each release installs as an upgrade.
         versionCode = (System.getenv('VERSION_CODE') ?: '1').toInteger()
-        versionName "1.0.0"
+        versionName = System.getenv('VERSION_NAME') ?: '1.0.0'
     }
     compileOptions {
         sourceCompatibility JavaVersion.VERSION_17
