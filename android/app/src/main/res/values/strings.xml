@@ -3,4 +3,9 @@
   <string name="widget_description">Real-time system monitoring widget</string>
   <string name="expo_splash_screen_resize_mode" translatable="false">contain</string>
   <string name="expo_splash_screen_status_bar_translucent" translatable="false">false</string>
+  <string name="add_widget">Add widget to home screen</string>
+  <string name="allow_refresh">Allow 3-second refresh</string>
+  <string name="status_added">Widget is on your home screen</string>
+  <string name="status_not_added">Widget not added yet</string>
+  <string name="pin_unsupported">Your launcher can\'t add widgets from apps.\nLong-press the home screen → Widgets → RTMON</string>
 </resources>

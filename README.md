@@ -13,7 +13,7 @@ A real-time system monitoring widget for Android. Shows live CPU, RAM, battery, 
 - LED Dot-Matrix font
 - Automatic light and dark theme support
 - 3-second refresh, paused while the screen is off
-- Widget only — no app UI
+- Tiny companion screen: one-tap **Add widget** and **Allow 3-second refresh**
 
 ---
 
@@ -37,10 +37,9 @@ APK output: `app/build/outputs/apk/release/app-release.apk`
 
 ## Add to Home Screen
 
-1. Long-press your home screen
-2. Tap **Widgets**
-3. Find **RTMON** and drag it on
-4. **Android 12+:** tap the RTMON app icon once and allow **Alarms & reminders** — needed for the 3-second refresh
+**From the app (Android 8+):** open RTMON → **Add widget to home screen** → **Add to home screen**. If the **Allow 3-second refresh** button shows, tap it and turn on *Alarms & reminders*.
+
+**Manually:** long-press your home screen → **Widgets** → drag **RTMON** on. Then open the RTMON app once to allow the 3-second refresh (Android 12+).
 
 ---
 
@@ -107,9 +106,11 @@ private const val MAX_DATA_POINTS = 20  // 20 points × 3s = 60s
 
 ## Troubleshooting
 
-**CPU shows `--`** — the device exposes neither `/proc/stat` nor cpufreq to apps (common on emulators)
+**CPU shows `--`** — the device exposes neither `/proc/stat` nor cpufreq to apps
 
-**Updates every ~5–10s instead of 3s** — tap the RTMON app icon and allow *Alarms & reminders*
+**CPU stuck at 50% on the emulator** — expected: emulator vCPUs report a fixed fake clock (1 of 2 kHz). Real phones report real clocks
+
+**Updates every ~5–10s instead of 3s** — open RTMON and tap **Allow 3-second refresh**
 
 **Stats frozen** — disable battery optimization: Settings → Apps → RTMON → Battery → Unrestricted
 

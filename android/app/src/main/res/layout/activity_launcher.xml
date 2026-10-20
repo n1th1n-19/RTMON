@@ -1,0 +1,43 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="@color/widget_background"
+    android:gravity="center"
+    android:orientation="vertical"
+    android:padding="24dp">
+
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:fontFamily="@font/led_dot_matrix"
+        android:letterSpacing="0.1"
+        android:text="@string/app_name"
+        android:textColor="@color/widget_label_text"
+        android:textSize="40sp" />
+
+    <TextView
+        android:id="@+id/status_text"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="16dp"
+        android:layout_marginBottom="32dp"
+        android:fontFamily="@font/led_dot_matrix"
+        android:gravity="center"
+        android:textColor="@color/widget_label_text"
+        android:textSize="14sp" />
+
+    <Button
+        android:id="@+id/add_widget_button"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="@string/add_widget" />
+
+    <Button
+        android:id="@+id/allow_refresh_button"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="8dp"
+        android:text="@string/allow_refresh"
+        android:visibility="gone" />
+</LinearLayout>
