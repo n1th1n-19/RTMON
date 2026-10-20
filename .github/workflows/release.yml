@@ -9,6 +9,13 @@ on:
     paths-ignore:
       - '**.md'
       - '.github/**'
+  workflow_dispatch:
+    inputs:
+      bump:
+        description: Version bump for the new release
+        type: choice
+        options: [patch, minor, major]
+        default: patch
 
 permissions:
   contents: write
@@ -33,10 +40,42 @@ jobs:
           ./gradlew assembleRelease lintRelease
 
   build-and-release:
-    if: github.event_name == 'push'
+    # Push to main: pre-release dev build. Manual run on main: new versioned release.
+    if: github.event_name != 'pull_request' && github.ref == 'refs/heads/main'
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0  # need tags for the version and history for versionCode
+
+      - name: Determine version
+        id: version
+        env:
+          BUMP: ${{ inputs.bump }}
+        run: |
+          latest=$(git tag -l 'v*' | grep -E '^v[0-9]+\.[0-9]+\.[0-9]+$' | sort -V | tail -1)
+          IFS=. read -r major minor patch <<< "${latest:-v0.0.0}"
+          major=${major#v}
+          # Commit count only grows on main, so every build installs as an upgrade.
+          code=$(git rev-list --count HEAD)
+
+          if [ "$GITHUB_EVENT_NAME" = workflow_dispatch ]; then
+            case "$BUMP" in
+              major) major=$((major + 1)); minor=0; patch=0 ;;
+              minor) minor=$((minor + 1)); patch=0 ;;
+              *)     patch=$((patch + 1)) ;;
+            esac
+            name="$major.$minor.$patch"
+            prerelease=false
+          else
+            name="$major.$minor.$patch-dev.$code"
+            prerelease=true
+          fi
+
+          echo "name=$name" >> "$GITHUB_OUTPUT"
+          echo "tag=v$name" >> "$GITHUB_OUTPUT"
+          echo "code=$code" >> "$GITHUB_OUTPUT"
+          echo "prerelease=$prerelease" >> "$GITHUB_OUTPUT"
 
       - uses: actions/setup-java@v4
         with:
@@ -61,7 +100,8 @@ jobs:
           SIGNING_KEYSTORE_PATH: release.keystore
           SIGNING_STORE_PASSWORD: ${{ secrets.SIGNING_STORE_PASSWORD }}
           SIGNING_KEY_ALIAS: ${{ secrets.SIGNING_KEY_ALIAS }}
-          VERSION_CODE: ${{ github.run_number }}
+          VERSION_NAME: ${{ steps.version.outputs.name }}
+          VERSION_CODE: ${{ steps.version.outputs.code }}
         run: |
           chmod +x gradlew
           ./gradlew assembleRelease
@@ -70,16 +110,12 @@ jobs:
         if: always()
         run: rm -f android/app/release.keystore
 
-      - name: Determine release tag
-        id: version
-        run: |
-          name=$(grep versionName android/app/build.gradle | sed -E 's/.*versionName "(.*)".*/\1/')
-          echo "tag=v${name}-${GITHUB_RUN_NUMBER}" >> "$GITHUB_OUTPUT"
-
       - name: Create GitHub Release
         uses: softprops/action-gh-release@v2
         with:
           tag_name: ${{ steps.version.outputs.tag }}
           name: RTMON ${{ steps.version.outputs.tag }}
+          target_commitish: ${{ github.sha }}
+          prerelease: ${{ steps.version.outputs.prerelease }}
           files: android/app/build/outputs/apk/release/app-release.apk
           generate_release_notes: true
