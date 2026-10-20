@@ -61,7 +61,6 @@ jobs:
           SIGNING_KEYSTORE_PATH: release.keystore
           SIGNING_STORE_PASSWORD: ${{ secrets.SIGNING_STORE_PASSWORD }}
           SIGNING_KEY_ALIAS: ${{ secrets.SIGNING_KEY_ALIAS }}
-          SIGNING_KEY_PASSWORD: ${{ secrets.SIGNING_KEY_PASSWORD }}
           VERSION_CODE: ${{ github.run_number }}
         run: |
           chmod +x gradlew
